@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import PracticeRadicals from "./components/PracticeRadicals.vue";
+import PracticeGround from "./components/PracticeGround.vue";
 </script>
 
 <template>
   <el-container class="center-container">
     <el-header>Header</el-header>
     <el-main justify="center" align="middle" class="center-content">
-      <PracticeRadicals />
+      <PracticeGround />
     </el-main>
     <el-footer>Footer</el-footer>
   </el-container>

@@ -1,60 +1,125 @@
 <script setup lang="ts">
-import { Ref, ref } from "vue";
-type RadicalType = "simplified" | "traditional" | "all";
-const radicalType: Ref<RadicalType> = ref("simplified");
-const tip = ref("");
-const inputValue = ref("");
-const history = ref([]);
+import { Ref, computed, ref } from "vue";
+import RadicalInput from "./RadicalInput.vue";
+import {
+  MemorizingItem,
+  loadMemorizedRadicalFromStorage,
+  saveMemorizedRadicalToStorage,
+} from "../shared/radical";
+const props = defineProps<{
+  radicals: { text: string; code: string }[];
+  schema: string;
+}>();
+const memorizedRadicals = ref(loadMemorizedRadicalFromStorage(props.schema));
+const initRemainingRadicals = (status: "unmemorized" | "memorized") => {
+  let radicals = props.radicals;
+  if (status === "unmemorized") {
+    radicals = radicals.filter(
+      (radical) => !memorizedRadicals.value.has(radical.text),
+    );
+  }
+
+  return radicals.map((radical) => {
+    return {
+      radical: radical.text,
+      code: radical.code,
+      status,
+      frequency: memorizedRadicals.value.get(radical.text)?.frequency ?? 0,
+    };
+  });
+};
+const remainingRadicals = ref(
+  (() => {
+    let radicals = initRemainingRadicals("unmemorized");
+    if (radicals.length === 0) {
+      radicals = initRemainingRadicals("memorized");
+    }
+    return radicals;
+  })(),
+);
+const pushNextUnmemorizedRadical = (queue: MemorizingItem[]) => {
+  if (remainingRadicals.value.length > 0) {
+    const radical = remainingRadicals.value.shift()!;
+    queue.push(radical);
+  }
+  return queue;
+};
+
+const practiceQueue: Ref<MemorizingItem[]> = ref(
+  (() => {
+    const queue = pushNextUnmemorizedRadical([]);
+    return pushNextUnmemorizedRadical(queue);
+  })(),
+);
+
+const radical = computed(() => {
+  return practiceQueue.value[0];
+});
+
+const memorizedCount = computed(() => {
+  return memorizedRadicals.value.size;
+});
+const percentage = computed(() => {
+  return (memorizedCount.value / props.radicals.length) * 100;
+});
+const percentageStatus = computed(() => {
+  if (percentage.value < 50) {
+    return "exception";
+  } else if (percentage.value < 80) {
+    return "warning";
+  }
+  return "success";
+});
+
+const onCompleted = (status: "success" | "error") => {
+  if (status === "success") {
+    if (practiceQueue.value[0].status === "memorizing") {
+      practiceQueue.value[0].status = "memorized";
+      practiceQueue.value[0].frequency++;
+      memorizedRadicals.value.set(
+        practiceQueue.value[0].radical,
+        practiceQueue.value[0],
+      );
+      saveMemorizedRadicalToStorage(props.schema, memorizedRadicals.value);
+      pushNextUnmemorizedRadical(practiceQueue.value);
+    } else if (practiceQueue.value[0].status === "unmemorized") {
+      practiceQueue.value.push({
+        radical: practiceQueue.value[0].radical,
+        code: practiceQueue.value[0].code,
+        status: "memorizing",
+        frequency: 0,
+      });
+    }
+    practiceQueue.value.shift();
+    if (practiceQueue.value.length === 0) {
+      remainingRadicals.value = initRemainingRadicals("memorized");
+      practiceQueue.value = pushNextUnmemorizedRadical([]);
+    }
+  }
+};
 </script>
 
 <template>
-  <!-- 顶部选择框 -->
-  <el-row class="row" justify="end">
-    <el-col :span="3">
-      <el-select v-model="radicalType" placeholder="繁简字根">
-        <el-option label="简体字根" value="simplified"></el-option>
-        <el-option label="繁體字根" value="traditional"></el-option>
-        <el-option label="全部" value="all"></el-option>
-      </el-select>
-    </el-col>
-  </el-row>
-
-  <el-row class="row" justify="center">
-    <el-col :span="5">
-      <el-card>
-        <span class="radical-text">字根</span>
-        <p v-if="tip">{{ tip }}</p>
-      </el-card>
-    </el-col>
-  </el-row>
-  <!-- 中间输入框 -->
-  <el-row class="row" justify="center">
-    <el-col :span="5">
-      <el-input
-        v-model="inputValue"
-        placeholder="请输入内容"
-        size="large"
-      ></el-input>
-    </el-col>
-  </el-row>
-
-  <!-- 底部列表 -->
-  <el-row>
-    <el-col :span="24">
-      <el-table :data="history" style="width: 100%">
-        <el-table-column prop="index" label="序號"></el-table-column>
-        <el-table-column prop="rank" label="成績"></el-table-column>
-      </el-table>
-    </el-col>
-  </el-row>
+  <div class="row">
+    <RadicalInput
+      :radical="radical.radical"
+      :code="radical.code"
+      @completed="onCompleted"
+      :tip="radical.status === 'unmemorized'"
+    />
+  </div>
+  <!--進度條-->
+  <div class="row">
+    <el-progress
+      :percentage="percentage"
+      :status="percentageStatus"
+      text-inside
+    ></el-progress>
+  </div>
 </template>
 
 <style scoped>
 .row {
-  margin-bottom: 30px;
-}
-.radical-text {
-  font-size: 3rem;
-  font-weight: bold;
+  margin-bottom: 10px;
 }
 </style>
