@@ -25,3 +25,17 @@ export function saveMemorizedRadicalToStorage(
     JSON.stringify([...memorizedRadical]),
   );
 }
+
+export function loadPracticingRadicalTypeFromStorage(): RadicalType {
+  const practicingRadicalType = localStorage.getItem(`practicing-radical-type`);
+  if (practicingRadicalType) {
+    return practicingRadicalType as RadicalType;
+  }
+  return "simplified";
+}
+
+export function savePracticingRadicalTypeToStorage(
+  practicingRadicalType: RadicalType,
+) {
+  localStorage.setItem(`practicing-radical-type`, practicingRadicalType);
+}

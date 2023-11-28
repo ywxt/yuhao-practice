@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import PracticeGround from "./components/PracticeGround.vue";
+import NavigationBar from "./components/NavigationBar.vue";
 </script>
 
 <template>
   <el-container class="center-container">
-    <el-header>Header</el-header>
+    <el-header>
+      <NavigationBar />
+    </el-header>
     <el-main justify="center" align="middle" class="center-content">
-      <PracticeGround />
+      <router-view />
     </el-main>
     <el-footer>Footer</el-footer>
   </el-container>
