@@ -73,7 +73,10 @@ const percentageStatus = computed(() => {
 
 const onCompleted = (status: "success" | "error") => {
   if (status === "success") {
-    if (practiceQueue.value[0].status === "memorizing") {
+    if (
+      practiceQueue.value[0].status === "memorizing" ||
+      practiceQueue.value[0].status === "memorized"
+    ) {
       practiceQueue.value[0].status = "memorized";
       practiceQueue.value[0].frequency++;
       memorizedRadicals.value.set(
@@ -95,6 +98,8 @@ const onCompleted = (status: "success" | "error") => {
       remainingRadicals.value = initRemainingRadicals("memorized");
       practiceQueue.value = pushNextUnmemorizedRadical([]);
     }
+  } else {
+    practiceQueue.value[0].status = "unmemorized";
   }
 };
 </script>

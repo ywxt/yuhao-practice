@@ -6,31 +6,20 @@ import "./style.css";
 import App from "./App.vue";
 import HelloWorld from "./components/HelloWorld.vue";
 import PracticePlayground from "./components/PracticePlayground.vue";
+import { getCommonRadicals } from "./shared/radical";
 
 const app = createApp(App);
 const routes = [
+  { path: "/", component: HelloWorld, props: { msg: "Hello World" } },
   {
-    path: "/",
-    component: App,
-    children: [
-      { path: "", component: HelloWorld },
-      {
-        path: "practice/common-radicals",
-        component: PracticePlayground,
-        props: (_: any) => {
-          return {
-            schema: "common-radicals",
-            radicals: [
-              {
-                text: "一",
-                code: "Fi",
-                type: "both",
-              },
-            ],
-          };
-        },
-      },
-    ],
+    path: "/practice/common-radicals",
+    component: PracticePlayground,
+    props: (_: any) => {
+      return {
+        schema: "common-radicals",
+        radicals: getCommonRadicals(),
+      };
+    },
   },
 ];
 

@@ -4,7 +4,7 @@ import NavigationBar from "./components/NavigationBar.vue";
 
 <template>
   <el-container class="center-container">
-    <el-header>
+    <el-header class="header">
       <NavigationBar />
     </el-header>
     <el-main justify="center" align="middle" class="center-content">
@@ -15,35 +15,20 @@ import NavigationBar from "./components/NavigationBar.vue";
 </template>
 
 <style scoped>
-@media (min-width: 768px) {
-  .center-container {
-    width: 750px;
-  }
-}
-
-@media (min-width: 992px) {
-  .center-container {
-    width: 970px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .center-container {
-    width: 1170px;
-  }
+.center-content {
+  text-align: center;
 }
 
 .center-container {
   height: 100vh;
-  /* width: 100vw; */
+  width: 100vw;
   /* 让容器充满整个视口高度 */
   display: flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
 }
 
-.center-content {
-  width: 100%;
-  /* 确保内容在容器内居中 */
+.el-header {
+  padding: 0;
+  margin: 0;
 }
 </style>
